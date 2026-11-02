@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
-df = pd.read_csv(("heart.csv"), index_col=0)
+df = pd.read_csv(("Heart.csv"), index_col=0)
 
 # a) SHAPE OF DATA
 print("Shape of Data:", df.shape)
