@@ -70,6 +70,45 @@ print("Accuracy:", round(accuracy, 2))
 print("Precision:", round(precision, 2))
 print("Recall:", round(recall, 2))
 
+# TAKE USER INPUT
+
+pclass = int(input("Enter Passenger Class (1-3): "))
+sex = input("Enter Sex (male/female): ").lower()
+age = float(input("Enter Age: "))
+sibsp = int(input("Enter Number of Siblings/Spouses: "))
+parch = int(input("Enter Number of Parents/Children: "))
+fare = float(input("Enter Fare: "))
+embarked = input("Enter Embarked (C/Q/S): ").upper()
+
+# CREATE INPUT DATAFRAME
+
+passenger = pd.DataFrame([[
+    pclass, age, sibsp, parch, fare,
+    1 if sex == "male" else 0,
+    1 if embarked == "Q" else 0,
+    1 if embarked == "S" else 0
+]], columns=X.columns)
+
+# passenger = pd.DataFrame([{
+#     "Pclass": pclass,
+#     "Age": age,
+#     "SibSp": sibsp,
+#     "Parch": parch,
+#     "Fare": fare,
+#     "Sex_male": 1 if sex == "male" else 0,
+#     "Embarked_Q": 1 if embarked == "Q" else 0,
+#     "Embarked_S": 1 if embarked == "S" else 0
+# }])
+
+# PREDICTION
+
+prediction = model.predict(passenger)
+
+if prediction[0] == 1:
+    print("Passenger is likely to Survive")
+else:
+    print("Passenger is unlikely to Survive")
+
 # VISUALIZATION
 
 plt.scatter(
