@@ -1,7 +1,5 @@
-
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import LabelEncoder
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.metrics import silhouette_score
 
@@ -12,8 +10,7 @@ print(df.head())
 print(df.isnull().sum())
 
 # DATA PREPROCESSING
-encoder = LabelEncoder()
-df["Genre"] = encoder.fit_transform(df["Genre"])
+df = pd.get_dummies(df, columns=["Genre"], drop_first=True, dtype=int)
 
 X = df[["Annual Income (k$)", "Spending Score (1-100)"]]
 
