@@ -1,201 +1,89 @@
 import heapq
-import os
 
-# MAZE
+# MANHATTAN DISTANCE
+def heuristic(state, goal):
+    distance = 0
 
-maze = [
-    list("###############"),
-    list("#P     #     G#"),
-    list("# ###     ### #"),
-    list("#             #"),
-    list("###############")
-]
+    for i in range(9):
+        if state[i] != 0:
+            goalIndex = goal.index(state[i])
 
-ROWS = len(maze)
-COLS = len(maze[0])
+            x1, y1 = i // 3, i % 3
+            x2, y2 = goalIndex // 3, goalIndex % 3
 
+            distance += abs(x1 - x2) + abs(y1 - y2)
 
-# CLEAR SCREEN
+    return distance
 
-def clear():
-    os.system("cls" if os.name == "nt" else "clear")
+# A* SEARCH
+def solve(start, goal):
+    pq = []
+    heapq.heappush(pq, (heuristic(start, goal), 0, start, []))
 
+    visited = set()
 
-# DISPLAY MAZE
+    while pq:
+        f, g, state, path = heapq.heappop(pq)
 
-def printMaze():
-    clear()
+        if state == goal:
+            return path + [state]
 
-    for row in maze:
-        print("".join(row))
+        if tuple(state) in visited:
+            continue
 
+        visited.add(tuple(state))
 
-# FIND POSITION
+        zero = state.index(0)
+        row, col = zero // 3, zero % 3
 
-def find(ch):
+        moves = [
+            (-1, 0, "Up"),
+            (1, 0, "Down"),
+            (0, -1, "Left"),
+            (0, 1, "Right")
+        ]
 
-    for i in range(ROWS):
-        for j in range(COLS):
+        for dx, dy, move in moves:
+            newRow = row + dx
+            newCol = col + dy
 
-            if maze[i][j] == ch:
-                return (i, j)
+            if 0 <= newRow < 3 and 0 <= newCol < 3:
+                newIndex = newRow * 3 + newCol
 
+                newState = state.copy()
+                newState[zero], newState[newIndex] = newState[newIndex], newState[zero]
 
-# HEURISTIC
+                if tuple(newState) not in visited:
+                    newG = g + 1
+                    newF = newG + heuristic(newState, goal)
 
-def heuristic(current, goal):
-    return abs(current[0] - goal[0]) + abs(current[1] - goal[1])
+                    heapq.heappush(
+                        pq,
+                        (newF, newG, newState, path + [state])
+                    )
 
+    return None
 
-# GET NEIGHBOURS
+# TAKE USER INPUT
+print("Enter initial state (use 0 for blank):")
+start = []
 
-def getNeighbors(node):
+for i in range(9):
+    start.append(int(input("Enter value: ")))
 
-    r, c = node
+goal = [1, 2, 3, 4, 5, 6, 7, 8, 0]
 
-    moves = [
-        (-1, 0),
-        (1, 0),
-        (0, -1),
-        (0, 1)
-    ]
+# SOLVE PUZZLE
+result = solve(start, goal)
 
-    neighbors = []
+# DISPLAY SOLUTION
+if result:
+    print("\nSolution found!")
+    print("Total Moves:", len(result) - 1)
 
-    for dr, dc in moves:
-
-        nr = r + dr
-        nc = c + dc
-
-        if 0 <= nr < ROWS and 0 <= nc < COLS:
-
-            if maze[nr][nc] != '#':
-                neighbors.append((nr, nc))
-
-    return neighbors
-
-
-# REMOVE HINT
-
-def clearStars():
-
-    for i in range(ROWS):
-        for j in range(COLS):
-
-            if maze[i][j] == '*':
-                maze[i][j] = ' '
-
-
-# A* HINT
-
-def hint():
-
-    start = find('P')
-    goal = find('G')
-
-    clearStars()
-
-    bestF = float("inf")
-    bestNode = None
-
-    print("\nCurrent Position:", start)
-    print("\nPossible Moves")
-    print("Direction\tg\th\tf")
-
-    for nextNode in getNeighbors(start):
-
-        g = 1
-        h = heuristic(nextNode, goal)
-        f = g + h
-
-        if nextNode[0] < start[0]:
-            direction = "Up"
-
-        elif nextNode[0] > start[0]:
-            direction = "Down"
-
-        elif nextNode[1] < start[1]:
-            direction = "Left"
-
-        else:
-            direction = "Right"
-
-        print(direction, "\t\t", g, "\t", h, "\t", f)
-
-        if f < bestF:
-            bestF = f
-            bestNode = nextNode
-
-    if bestNode:
-
-        r, c = bestNode
-        maze[r][c] = '*'
-
-        print("\nBest Move:", bestNode)
-        print("Minimum f:", bestF)
-
-    input("\nPress Enter...")
-
-
-# GAME
-
-while True:
-
-    printMaze()
-
-    print("\nControls")
-    print("W = Up")
-    print("S = Down")
-    print("A = Left")
-    print("D = Right")
-    print("H = Hint")
-    print("Q = Quit")
-
-    move = input("\nEnter Choice: ").lower()
-
-    if move == 'q':
-        break
-
-    if move == 'h':
-        hint()
-        continue
-
-    clearStars()
-
-    r, c = find('P')
-
-    nr = r
-    nc = c
-
-    if move == 'w':
-        nr -= 1
-
-    elif move == 's':
-        nr += 1
-
-    elif move == 'a':
-        nc -= 1
-
-    elif move == 'd':
-        nc += 1
-
-    else:
-        continue
-
-    if maze[nr][nc] == '#':
-        continue
-
-    if maze[nr][nc] == 'G':
-
-        maze[r][c] = ' '
-        maze[nr][nc] = 'P'
-
-        printMaze()
-
-        print("\nCongratulations!")
-        print("You reached the Goal.")
-
-        break
-
-    maze[r][c] = ' '
-    maze[nr][nc] = 'P'
+    for i, state in enumerate(result):
+        print("\nStep", i)
+        for j in range(0, 9, 3):
+            print(state[j:j+3])
+else:
+    print("No solution exists.")
