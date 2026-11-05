@@ -5,21 +5,16 @@ from apyori import apriori
 # LOAD DATASET
 df = pd.read_csv("Market_Basket_Optimisation.csv", header=None)
 
-print(df.head())
-
 # DATA PREPROCESSING
 transactions = []
 
 for i in range(len(df)):
-    items = []
-    for j in range(len(df.columns)):
-        if pd.notna(df.iloc[i, j]):
-            items.append(str(df.iloc[i, j]).strip())
+    items = df.iloc[i].dropna().tolist()
     transactions.append(items)
 
 print("Total Transactions:", len(transactions))
 
-# APPLY APRIORI ALGORITHM
+# APPLY APRIORI
 rules = apriori(
     transactions,
     min_support=0.003,
@@ -31,25 +26,14 @@ rules = apriori(
 rules = list(rules)
 
 # DISPLAY RULES
-ruleData = []
-
 for rule in rules:
     for item in rule.ordered_statistics:
-        ruleData.append([
-            list(item.items_base),
-            list(item.items_add),
-            rule.support,
-            item.confidence,
-            item.lift
-        ])
-
-result = pd.DataFrame(
-    ruleData,
-    columns=["Antecedent", "Consequent", "Support", "Confidence", "Lift"]
-)
-
-print("Total Rules:", len(result))
-print(result)
+        print(
+            list(item.items_base), "=>", list(item.items_add),
+            "Support:", round(rule.support, 3),
+            "Confidence:", round(item.confidence, 3),
+            "Lift:", round(item.lift, 3)
+        )
 
 # INCREASE MINIMUM CONFIDENCE
 rules2 = apriori(
@@ -60,23 +44,23 @@ rules2 = apriori(
     min_length=2
 )
 
-print("\nRules with Minimum Confidence 0.4:")
+print("\nRules with Confidence 0.4:")
 
 for rule in rules2:
     for item in rule.ordered_statistics:
-        print(
-            list(item.items_base), "=>", list(item.items_add),
-            "Support:", round(rule.support, 3),
-            "Confidence:", round(item.confidence, 3),
-            "Lift:", round(item.lift, 3)
-        )
+        print(list(item.items_base), "=>", list(item.items_add))
 
-# VISUALIZE RULES
-if not result.empty:
-    plt.scatter(result["Support"], result["Confidence"])
-    plt.xlabel("Support")
-    plt.ylabel("Confidence")
-    plt.title("Association Rules using Apriori")
-    plt.show()
-else:
-    print("No rules found.")
+# VISUALIZATION
+support = []
+confidence = []
+
+for rule in rules:
+    for item in rule.ordered_statistics:
+        support.append(rule.support)
+        confidence.append(item.confidence)
+
+plt.scatter(support, confidence)
+plt.xlabel("Support")
+plt.ylabel("Confidence")
+plt.title("Association Rules")
+plt.show()
