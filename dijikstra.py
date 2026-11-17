@@ -4,16 +4,16 @@ import heapq
 def dijkstra(graph, start):
 
     distance = {}
-
+    previous = {}
     visited = set()
 
     for node in graph:
         distance[node] = float("inf")
+        previous[node] = None
 
     distance[start] = 0
 
     priorityQueue = []
-
     heapq.heappush(priorityQueue, (0, start))
 
     while priorityQueue:
@@ -32,13 +32,14 @@ def dijkstra(graph, start):
             if newDistance < distance[neighbor]:
 
                 distance[neighbor] = newDistance
+                previous[neighbor] = current
 
                 heapq.heappush(
                     priorityQueue,
                     (newDistance, neighbor)
                 )
 
-    return distance
+    return distance, previous
 
 
 # INPUT GRAPH
@@ -64,12 +65,31 @@ for i in range(n):
 # FIND SHORTEST PATH
 start = input("Enter starting vertex: ")
 
-distance = dijkstra(graph, start)
+if start in graph:
 
+    distance, previous = dijkstra(graph, start)
 
-# DISPLAY RESULT
-print("Shortest Distances")
+    # DISPLAY RESULT
+    print("\nShortest Distances and Paths:")
 
-for node in distance:
+    for node in graph:
 
-    print(start, "->", node, "=", distance[node])
+        if distance[node] == float("inf"):
+            print(start, "->", node, "= No path exists")
+            continue
+
+        path = []
+        current = node
+
+        while current is not None:
+            path.append(current)
+            current = previous[current]
+
+        path.reverse()
+
+        print("Path:", " -> ".join(path))
+        print("Distance:", distance[node])
+        print()
+
+else:
+    print("Invalid starting vertex")

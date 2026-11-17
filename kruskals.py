@@ -31,10 +31,16 @@ def union(parent, rank, x, y):
 
 # INPUT GRAPH
 n = int(input("Enter number of vertices: "))
+
+vertices = []
+
+for i in range(n):
+    vertex = input("Enter vertex: ")
+    vertices.append(vertex)
+
 m = int(input("Enter number of edges: "))
 
 edges = []
-vertices = []
 
 for i in range(m):
 
@@ -44,20 +50,21 @@ for i in range(m):
 
     edges.append((w, u, v))
 
-    if u not in vertices:
-        vertices.append(u)
-
-    if v not in vertices:
-        vertices.append(v)
-
 
 # SORT EDGES
 edges.sort()
 
+print("\nSorted Edges:")
+
+for w, u, v in edges:
+    print(u, "-", v, "=", w)
+
+
+# INITIALIZE DISJOINT SET
 parent = []
 rank = []
 
-for i in range(len(vertices)):
+for i in range(n):
     parent.append(i)
     rank.append(0)
 
@@ -65,6 +72,9 @@ for i in range(len(vertices)):
 # KRUSKAL'S ALGORITHM
 cost = 0
 edgeCount = 0
+mst = []
+
+print("\nCycle Checks:")
 
 for w, u, v in edges:
 
@@ -73,13 +83,28 @@ for w, u, v in edges:
 
     if union(parent, rank, uIndex, vIndex):
 
-        print(u, "-", v, "=", w)
+        print(u, "-", v, "=", w, "-> No Cycle (Accepted)")
 
+        mst.append((u, v, w))
         cost += w
         edgeCount += 1
 
-        if edgeCount == len(vertices) - 1:
+        if edgeCount == n - 1:
             break
 
+    else:
+        print(u, "-", v, "=", w, "-> Cycle Detected (Rejected)")
 
-print("Minimum Cost of MST =", cost)
+
+# DISPLAY MST
+if edgeCount == n - 1:
+
+    print("\nSelected MST Edges:")
+
+    for u, v, w in mst:
+        print(u, "-", v, "=", w)
+
+    print("Total Minimum Cost =", cost)
+
+else:
+    print("\nMST cannot be formed. Graph is disconnected.")
