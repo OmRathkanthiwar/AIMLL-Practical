@@ -13,33 +13,54 @@ def dijkstra(graph, start):
 
     distance[start] = 0
 
-    priorityQueue = []
-    heapq.heappush(priorityQueue, (0, start))
+    pq = []
+    heapq.heappush(pq, (0, start))
 
-    while priorityQueue:
+    while pq:
 
-        currentDistance, current = heapq.heappop(priorityQueue)
+        currentDistance, current = heapq.heappop(pq)
 
         if current in visited:
             continue
 
         visited.add(current)
 
-        for neighbor, weight in graph[current]:
+        for neighbour, weight in graph[current]:
 
             newDistance = currentDistance + weight
 
-            if newDistance < distance[neighbor]:
+            if newDistance < distance[neighbour]:
 
-                distance[neighbor] = newDistance
-                previous[neighbor] = current
+                distance[neighbour] = newDistance
+                previous[neighbour] = current
 
-                heapq.heappush(
-                    priorityQueue,
-                    (newDistance, neighbor)
-                )
+                heapq.heappush(pq, (newDistance, neighbour))
 
     return distance, previous
+
+
+# DISPLAY SHORTEST PATH
+def display(graph, start, distance, previous):
+
+    print("\nShortest Distances and Paths:")
+
+    for node in graph:
+
+        if distance[node] == float("inf"):
+            print(node, ": No path exists")
+            continue
+
+        path = []
+        current = node
+
+        while current is not None:
+            path.append(current)
+            current = previous[current]
+
+        path.reverse()
+
+        print("Path:", " -> ".join(path))
+        print("Distance:", distance[node])
 
 
 # INPUT GRAPH
@@ -56,10 +77,10 @@ for i in range(n):
 
     for j in range(m):
 
-        neighbor = input("Enter connected vertex: ")
+        neighbour = input("Enter connected vertex: ")
         weight = int(input("Enter edge weight: "))
 
-        graph[node].append((neighbor, weight))
+        graph[node].append((neighbour, weight))
 
 
 # FIND SHORTEST PATH
@@ -69,27 +90,7 @@ if start in graph:
 
     distance, previous = dijkstra(graph, start)
 
-    # DISPLAY RESULT
-    print("\nShortest Distances and Paths:")
-
-    for node in graph:
-
-        if distance[node] == float("inf"):
-            print(start, "->", node, "= No path exists")
-            continue
-
-        path = []
-        current = node
-
-        while current is not None:
-            path.append(current)
-            current = previous[current]
-
-        path.reverse()
-
-        print("Path:", " -> ".join(path))
-        print("Distance:", distance[node])
-        print()
+    display(graph, start, distance, previous)
 
 else:
     print("Invalid starting vertex")
