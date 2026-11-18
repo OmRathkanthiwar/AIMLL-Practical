@@ -1,8 +1,22 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+# LOAD DATASET
+df = pd.read_csv("Heart.csv", index_col=0)
+
+# DATA PREPROCESSING
+df.replace("?", pd.NA, inplace=True)
+
+# HANDLE MISSING VALUES
+for col in df.columns:
+
+    if df[col].dtype == "object":
+        df[col] = df[col].fillna(df[col].mode()[0])
+    else:
+        df[col] = df[col].fillna(df[col].median())
 
 
-df = pd.read_csv(("Heart.csv"), index_col=0)
+# EXPLORATORY DATA ANALYSIS
 
 # a) SHAPE OF DATA
 print("Shape of Data:", df.shape)
@@ -11,7 +25,7 @@ print("Shape of Data:", df.shape)
 print("\nMissing Values:")
 print(df.isnull().sum())
 
-# c) DATA TYPE OF EACH COLUMN
+# c) DATA TYPES
 print("\nData Types:")
 print(df.dtypes)
 
@@ -19,28 +33,23 @@ print(df.dtypes)
 print("\nNumber of Zeros:")
 print((df == 0).sum())
 
-# e) MEAN AGE
-meanAge = df["Age"].mean()
-print("\nMean Age:", round(meanAge, 2))
+# e) SUMMARY STATISTICS
+print("\nSummary Statistics:")
+print(df.describe())
 
-# f) EXTRACT REQUIRED COLUMNS
+# # f) MEAN AGE
+# meanAge = df["Age"].mean()
+# print("\nMean Age:", round(meanAge, 2))
+
+# g) EXTRACT REQUIRED COLUMNS
 selectedData = df[["Age", "Sex", "ChestPain", "RestBP", "Chol"]]
 
 print("\nSelected Data:")
 print(selectedData)
 
-# TRAINING AND TESTING DATA
-trainData, testData = train_test_split(
-    selectedData,
-    test_size=0.25,
-    random_state=42
-)
-
-print("\nTraining Data Shape:", trainData.shape)
-print("Testing Data Shape:", testData.shape)
-
-print("\nTraining Data:")
-print(trainData)
-
-print("\nTesting Data:")
-print(testData)
+# VISUALIZATION
+plt.hist(df["Age"], bins=10)
+plt.xlabel("Age")
+plt.ylabel("Frequency")
+plt.title("Age Distribution")
+plt.show()
