@@ -1,66 +1,60 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from apyori import apriori
+from mlxtend.preprocessing import TransactionEncoder
+from mlxtend.frequent_patterns import apriori, association_rules
 
 # LOAD DATASET
-df = pd.read_csv("Market_Basket_Optimisation.csv", header=None)
+df = pd.read_csv("Market_Basket_Optimization.csv", header=None)
 
 # DATA PREPROCESSING
 transactions = []
 
 for i in range(len(df)):
     items = df.iloc[i].dropna().tolist()
+    items = [item.strip() for item in items]
     transactions.append(items)
 
-print("Total Transactions:", len(transactions))
+# CONVERT TRANSACTIONS INTO BOOLEAN DATA
+te = TransactionEncoder()
+teArray = te.fit(transactions).transform(transactions)
 
-# APPLY APRIORI
-rules = apriori(
-    transactions,
-    min_support=0.003,
-    min_confidence=0.2,
-    min_lift=3,
-    min_length=2
+dfEncoded = pd.DataFrame(teArray, columns=te.columns_)
+
+# APPLY APRIORI ALGORITHM
+frequentItems = apriori(
+    dfEncoded,
+    min_support=0.01,
+    use_colnames=True
 )
 
-rules = list(rules)
+print("Frequent Itemsets:")
+print(frequentItems)
 
-# DISPLAY RULES
-for rule in rules:
-    for item in rule.ordered_statistics:
-        print(
-            list(item.items_base), "=>", list(item.items_add),
-            "Support:", round(rule.support, 3),
-            "Confidence:", round(item.confidence, 3),
-            "Lift:", round(item.lift, 3)
-        )
-
-# INCREASE MINIMUM CONFIDENCE
-rules2 = apriori(
-    transactions,
-    min_support=0.003,
-    min_confidence=0.4,
-    min_lift=3,
-    min_length=2
+# GENERATE ASSOCIATION RULES
+rules = association_rules(
+    frequentItems,
+    metric="confidence",
+    min_threshold=0.2
 )
 
-print("\nRules with Confidence 0.4:")
+print("\nAssociation Rules:")
+print(rules[["antecedents", "consequents", "support",
+             "confidence", "lift"]])
 
-for rule in rules2:
-    for item in rule.ordered_statistics:
-        print(list(item.items_base), "=>", list(item.items_add))
+# EVALUATION
+print("\nNumber of Frequent Itemsets:", len(frequentItems))
+print("Number of Association Rules:", len(rules))
+
+print("\nAverage Support:", rules["support"].mean())
+print("Average Confidence:", rules["confidence"].mean())
+print("Average Lift:", rules["lift"].mean())
 
 # VISUALIZATION
-support = []
-confidence = []
+plt.scatter(rules["support"], rules["confidence"],
+            c=rules["lift"], cmap="viridis")
 
-for rule in rules:
-    for item in rule.ordered_statistics:
-        support.append(rule.support)
-        confidence.append(item.confidence)
-
-plt.scatter(support, confidence)
 plt.xlabel("Support")
 plt.ylabel("Confidence")
-plt.title("Association Rules")
+plt.title("Apriori Association Rules")
+plt.colorbar(label="Lift")
 plt.show()
