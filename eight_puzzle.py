@@ -35,10 +35,7 @@ def get_neighbors(state):
 
                     if 0 <= x < 3 and 0 <= y < 3:
                         new_state = [list(row) for row in state]
-
-                        new_state[i][j], new_state[x][y] = \
-                        new_state[x][y], new_state[i][j]
-
+                        new_state[i][j], new_state[x][y] = new_state[x][y], new_state[i][j]
                         neighbors.append(tuple(tuple(row) for row in new_state))
 
     return neighbors
