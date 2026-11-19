@@ -1,89 +1,104 @@
-import heapq
+from queue import PriorityQueue
+
+goal = ((1,2,3), (4,5,6), (7,8,0))
 
 # MANHATTAN DISTANCE
-def heuristic(state, goal):
+def heuristic(state):
     distance = 0
 
-    for i in range(9):
-        if state[i] != 0:
-            goalIndex = goal.index(state[i])
+    for i in range(3):
+        for j in range(3):
+            value = state[i][j]
 
-            x1, y1 = i // 3, i % 3
-            x2, y2 = goalIndex // 3, goalIndex % 3
+            if value != 0:
+                x = (value-1) // 3
+                y = (value-1) % 3
 
-            distance += abs(x1 - x2) + abs(y1 - y2)
+                distance += abs(i-x) + abs(j-y)
 
     return distance
 
-# A* SEARCH
-def solve(start, goal):
-    pq = []
-    heapq.heappush(pq, (heuristic(start, goal), 0, start, []))
 
-    visited = set()
+# GENERATE NEIGHBOURS
+def get_neighbors(state):
+    neighbors = []
 
-    while pq:
-        f, g, state, path = heapq.heappop(pq)
+    for i in range(3):
+        for j in range(3):
 
-        if state == goal:
-            return path + [state]
+            if state[i][j] == 0:
+                moves = [(-1,0), (1,0), (0,-1), (0,1)]
 
-        if tuple(state) in visited:
+                for dx, dy in moves:
+                    x = i+dx
+                    y = j+dy
+
+                    if 0 <= x < 3 and 0 <= y < 3:
+                        new_state = [list(row) for row in state]
+
+                        new_state[i][j], new_state[x][y] = \
+                        new_state[x][y], new_state[i][j]
+
+                        neighbors.append(tuple(tuple(row) for row in new_state))
+
+    return neighbors
+
+
+# PRINT PATH
+def print_path(parent, state):
+    path = []
+
+    while state is not None:
+        path.append(state)
+        state = parent[state]
+
+    path.reverse()
+
+    for state in path:
+        for row in state:
+            print(row)
+        print()
+
+
+# A* ALGORITHM
+def astar(start):
+    pq = PriorityQueue()
+
+    pq.put((heuristic(start), 0, start))
+
+    g_cost = {start: 0}
+    parent = {start: None}
+
+    while not pq.empty():
+
+        f, g, current = pq.get()
+
+        if current == goal:
+            print("Goal Reached!")
+            print("Total Moves:", g)
+            print_path(parent, current)
+            return
+
+        if g > g_cost[current]:
             continue
 
-        visited.add(tuple(state))
+        for neighbor in get_neighbors(current):
 
-        zero = state.index(0)
-        row, col = zero // 3, zero % 3
+            new_g = g + 1
 
-        moves = [
-            (-1, 0, "Up"),
-            (1, 0, "Down"),
-            (0, -1, "Left"),
-            (0, 1, "Right")
-        ]
+            if neighbor not in g_cost or new_g < g_cost[neighbor]:
 
-        for dx, dy, move in moves:
-            newRow = row + dx
-            newCol = col + dy
+                g_cost[neighbor] = new_g
+                parent[neighbor] = current
 
-            if 0 <= newRow < 3 and 0 <= newCol < 3:
-                newIndex = newRow * 3 + newCol
+                new_f = new_g + heuristic(neighbor)
 
-                newState = state.copy()
-                newState[zero], newState[newIndex] = newState[newIndex], newState[zero]
+                pq.put((new_f, new_g, neighbor))
 
-                if tuple(newState) not in visited:
-                    newG = g + 1
-                    newF = newG + heuristic(newState, goal)
+    print("No Solution Exists")
 
-                    heapq.heappush(
-                        pq,
-                        (newF, newG, newState, path + [state])
-                    )
 
-    return None
+# START STATE
+start = ((1,2,3), (4,0,6), (7,5,8))
 
-# TAKE USER INPUT
-print("Enter initial state (use 0 for blank):")
-start = []
-
-for i in range(9):
-    start.append(int(input("Enter value: ")))
-
-goal = [1, 2, 3, 4, 5, 6, 7, 8, 0]
-
-# SOLVE PUZZLE
-result = solve(start, goal)
-
-# DISPLAY SOLUTION
-if result:
-    print("\nSolution found!")
-    print("Total Moves:", len(result) - 1)
-
-    for i, state in enumerate(result):
-        print("\nStep", i)
-        for j in range(0, 9, 3):
-            print(state[j:j+3])
-else:
-    print("No solution exists.")
+astar(start)

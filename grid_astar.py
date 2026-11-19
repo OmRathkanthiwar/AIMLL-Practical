@@ -1,131 +1,86 @@
-
 import heapq
 
-# MANHATTAN DISTANCE
-def heuristic(a, b):
+grid = [
+    [0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0],
+    [0, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0]
+]
 
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+start = (0, 0)
+goal = (4, 4)
+
+# HEURISTIC
+def heuristic(node):
+    return abs(node[0]-goal[0]) + abs(node[1]-goal[1])
 
 
-# A* SEARCH
-def astar(grid, start, goal):
+# A* ALGORITHM
+def astar():
+    pq = [(heuristic(start), 0, start)]
 
-    rows = len(grid)
-    cols = len(grid[0])
-
-    pq = []
-    heapq.heappush(pq, (heuristic(start, goal), 0, start))
-
-    distance = {start: 0}
-    previous = {}
-
-    visited = set()
+    g_cost = {start: 0}
+    parent = {}
 
     while pq:
 
         f, g, current = heapq.heappop(pq)
 
-        if current in visited:
-            continue
-
-        visited.add(current)
-
         if current == goal:
             break
 
-        row, col = current
+        if g > g_cost[current]:
+            continue
 
-        moves = [
-            (-1, 0),
-            (1, 0),
-            (0, -1),
-            (0, 1)
-        ]
+        moves = [(-1,0), (1,0), (0,-1), (0,1)]
 
         for dx, dy in moves:
+            x = current[0] + dx
+            y = current[1] + dy
 
-            newRow = row + dx
-            newCol = col + dy
+            neighbor = (x, y)
 
-            if (0 <= newRow < rows and
-                0 <= newCol < cols and
-                grid[newRow][newCol] == 0):
+            if (0 <= x < len(grid) and
+                0 <= y < len(grid[0]) and
+                grid[x][y] == 0):
 
-                neighbour = (newRow, newCol)
+                new_g = g + 1
 
-                newG = g + 1
+                if neighbor not in g_cost or new_g < g_cost[neighbor]:
 
-                if newG < distance.get(neighbour, float("inf")):
+                    g_cost[neighbor] = new_g
+                    parent[neighbor] = current
 
-                    distance[neighbour] = newG
-                    previous[neighbour] = current
+                    new_f = new_g + heuristic(neighbor)
 
-                    newF = newG + heuristic(neighbour, goal)
+                    heapq.heappush(pq, (new_f, new_g, neighbor))
 
-                    heapq.heappush(
-                        pq, (newF, newG, neighbour)
-                    )
-
-    # DISPLAY PATH
-    if goal not in distance:
-        print("No path exists")
+    else:
+        print("No Path Found")
         return
 
+    # RECONSTRUCT PATH
     path = []
-    current = goal
+    node = goal
 
-    while current != start:
-        path.append(current)
-        current = previous[current]
+    while node != start:
+        path.append(node)
+        node = parent[node]
 
     path.append(start)
     path.reverse()
 
-    print("\nOptimal Path:")
+    print("Shortest Path:", path)
+    print("Total Cost:", g_cost[goal])
 
-    for point in path:
-        print(point)
+    # DISPLAY GRID
+    for x, y in path:
+        if (x, y) != start and (x, y) != goal:
+            grid[x][y] = "*"
 
-    print("Traversal Cost:", distance[goal])
-
-
-# INPUT GRID
-rows = int(input("Enter number of rows: "))
-cols = int(input("Enter number of columns: "))
-
-grid = []
-
-print("Enter grid (0 = Free, 1 = Obstacle):")
-
-for i in range(rows):
-
-    row = []
-
-    for j in range(cols):
-        value = int(input("Enter value: "))
-        row.append(value)
-
-    grid.append(row)
+    for row in grid:
+        print(row)
 
 
-# START AND GOAL
-print("\nEnter start coordinates:")
-sx = int(input("Row: "))
-sy = int(input("Column: "))
-
-print("\nEnter goal coordinates:")
-gx = int(input("Row: "))
-gy = int(input("Column: "))
-
-start = (sx, sy)
-goal = (gx, gy)
-
-# SOLVE PATH
-if (0 <= sx < rows and 0 <= sy < cols and
-    0 <= gx < rows and 0 <= gy < cols and
-    grid[sx][sy] == 0 and grid[gx][gy] == 0):
-
-    astar(grid, start, goal)
-
-else:
-    print("Invalid start or goal position")
+astar()
